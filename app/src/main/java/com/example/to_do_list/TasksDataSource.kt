@@ -4,21 +4,23 @@ class InMemoryTaskDataSource : TaskDataSource {
     private val tasks = mutableListOf<Task>()
 
     override fun getTasks(): List<Task> {
-        return tasks.toList()
+        return this.tasks.toList()
+    }
+
+    override fun setTasks(list: List<Task>) {
+        this.tasks.clear()
+        this.tasks.addAll(list)
     }
 
     override fun addTask(task: Task) {
-        tasks.add(task)
-    }
-
-    override fun updateTask(task: Task) {
-        val index = tasks.indexOfFirst { it.id == task.id }
-        if (index != -1) {
-            tasks[index] = task
-        }
+        this.tasks.add(task)
     }
 
     override fun deleteTask(task: Task) {
-        tasks.remove(task)
+        this.tasks.remove(task)
+    }
+
+    override fun getTasksSize(): Int {
+        return tasks.size
     }
 }

@@ -9,7 +9,10 @@ data class Task(
 
 interface TaskDataSource {
     fun getTasks(): List<Task>
+
+    fun setTasks(list: List<Task>)
     fun addTask(task: Task)
-    fun updateTask(task: Task)
     fun deleteTask(task: Task)
+
+    fun getTasksSize(): Int
 }

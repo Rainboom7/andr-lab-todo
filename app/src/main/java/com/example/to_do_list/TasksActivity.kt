@@ -1,22 +1,22 @@
 package com.example.to_do_list
 
+import android.app.AlertDialog
 import android.os.Bundle
-import android.widget.Button
-import android.widget.TextView
+import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 interface TasksContract {
     interface View {
         fun showTasks(tasks: List<Task>)
-        fun updateTaskAdded(task: Task)
-        fun updateTaskUpdated(task: Task)
-        fun updateTaskDeleted(task: Task)
+        fun updateTasks(task: Task)
     }
 
     interface Presenter {
         fun getTasks()
         fun addTask(task: Task)
-        fun updateTask(task: Task)
         fun deleteTask(task: Task)
     }
 }
@@ -24,51 +24,57 @@ interface TasksContract {
 class TasksActivity : AppCompatActivity(), TasksContract.View {
 
     private lateinit var presenter: TasksContract.Presenter
-    private lateinit var fabAddTask: Button
-    private lateinit var textViewTasks: TextView
+    private lateinit var fabAddTask: FloatingActionButton
+    private lateinit var recyclerViewTasks: RecyclerView
+    private lateinit var adapter: RecyclerViewAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_tasks)
         fabAddTask = findViewById(R.id.fabAddTask)
-        textViewTasks = findViewById(R.id.textViewTasks)
-
+        recyclerViewTasks = findViewById(R.id.recyclerViewTasks)
         presenter = TasksPresenter(this)
+
+        adapter = RecyclerViewAdapter(emptyList(),presenter::deleteTask)
+
+        recyclerViewTasks.adapter = adapter
+        recyclerViewTasks.layoutManager = LinearLayoutManager(this)
 
 
         fabAddTask.setOnClickListener {
-            // Simulate adding a task - replace this with your actual logic
-            val newTask = Task(1, "New Task", "Description")
-            presenter.addTask(newTask)
+            showAddTaskDialog()
         }
 
         presenter.getTasks()
+    }
+
+    private fun showAddTaskDialog() {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_add_task, null)
+        val dialogBuilder = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .setTitle("Add Task")
+            .setPositiveButton("Add") { _, _ ->
+                val titleInput = dialogView.findViewById<EditText>(R.id.editTextTitle).text.toString()
+                val descriptionInput = dialogView.findViewById<EditText>(R.id.editTextDescription).text.toString()
+                if (titleInput.isNotEmpty() && descriptionInput.isNotEmpty()) {
+                    val newTask = Task(System.currentTimeMillis(), titleInput, descriptionInput)
+                    presenter.addTask(newTask)
+                }
+            }
+            .setNegativeButton("Cancel") { dialog, _ ->
+                dialog.dismiss()
+            }
+
+        val alertDialog = dialogBuilder.create()
+        alertDialog.show()
     }
 
     override fun showTasks(tasks: List<Task>) {
-        // Displaying tasks directly in a TextView for simplicity
-        val stringBuilder = StringBuilder()
-        for (task in tasks) {
-            stringBuilder.append("Task: ${task.title}\nDescription: ${task.description}\n\n")
-        }
-        textViewTasks.text = stringBuilder.toString()
+        adapter.setTasks(tasks)
     }
 
-    override fun updateTaskAdded(task: Task) {
-        // Show a toast or perform any UI update when a task is added
-        // For simplicity, let's just refresh the task list
+    override fun updateTasks(task: Task) {
         presenter.getTasks()
     }
 
-    override fun updateTaskUpdated(task: Task) {
-        // Update the UI when a task is updated
-        // For simplicity, let's just refresh the task list
-        presenter.getTasks()
-    }
-
-    override fun updateTaskDeleted(task: Task) {
-        // Update the UI when a task is deleted
-        // For simplicity, let's just refresh the task list
-        presenter.getTasks()
-    }
 }
